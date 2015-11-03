@@ -1,10 +1,4 @@
-# postcss-processor-splicer
-Allow your postcss plugin pipeline to be modified like an array.
-
-## Example
-
-```javascript
-var Splicer = require('postcss-processor-splicer')
+var Splicer = require('..')
 var postcss = require('postcss')
 var noop = function () {
   return function () {}
@@ -47,30 +41,3 @@ function getName(plugin) {
   return plugin.postcssPlugin
 }
 
-```
-
-## pipeline = Splicer(processors)
-
-### processors
-
-Type: `Array`
-
-### pipeline.[ArrayLikeMethods]
-`ArrayLikeMethods` could be one of the following:
-
-* `splice`
-* `push`
-* `pop`
-* `shift`
-* `unshift`
-
-### pipeline.get(label)
-### pipeline.indexOf(label)
-
-#### label
-
-Type: `String`, `Number`
-
-### pipeline.toProcessor()
-
-Return a postcss processor.
