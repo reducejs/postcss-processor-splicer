@@ -1,6 +1,14 @@
 # postcss-processor-splicer
 Allow your postcss plugin pipeline to be modified like an array.
 
+[![npm](https://nodei.co/npm/postcss-processor-splicer.png?downloads=true)](https://www.npmjs.org/package/postcss-processor-splicer)
+
+[![version](https://img.shields.io/npm/v/postcss-processor-splicer.svg)](https://www.npmjs.org/package/postcss-processor-splicer)
+[![status](https://travis-ci.org/zoubin/postcss-processor-splicer.svg?branch=master)](https://travis-ci.org/zoubin/postcss-processor-splicer)
+[![coverage](https://img.shields.io/coveralls/zoubin/postcss-processor-splicer.svg)](https://coveralls.io/github/zoubin/postcss-processor-splicer)
+[![dependencies](https://david-dm.org/zoubin/postcss-processor-splicer.svg)](https://david-dm.org/zoubin/postcss-processor-splicer)
+[![devDependencies](https://david-dm.org/zoubin/postcss-processor-splicer/dev-status.svg)](https://david-dm.org/zoubin/postcss-processor-splicer#info=devDependencies)
+
 ## Example
 
 ```javascript
