@@ -25,7 +25,7 @@ gulp.task('lint', function () {
     .pipe(eslint.failAfterError())
 })
 
-gulp.task('test', ['lint'], test)
+gulp.task('test', test)
 gulp.task('coverage',
   require('callback-sequence')(instrument, test, report)
 )

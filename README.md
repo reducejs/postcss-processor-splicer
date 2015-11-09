@@ -12,58 +12,185 @@ Allow your postcss plugin pipeline to be modified like an array.
 ## Example
 
 ```javascript
-var Splicer = require('postcss-processor-splicer')
 var postcss = require('postcss')
-var noop = function () {
-  return function () {}
-}
-var A = postcss.plugin('A', noop)
-var B = postcss.plugin('B', noop)
-var C = postcss.plugin('C', noop)
-var D = postcss.plugin('D', noop)
-var E = postcss.plugin('E', noop)
+var Pipeline = require('postcss-processor-splicer')
 
-var pipeline = Splicer([
-  'a', [ A() ],
-  'b', [ B() ],
-  'c', [ postcss(C()) ],
-  'd', [
-    'a', [ A() ],
-    'b', [ B() ],
-  ],
+function createCreator(name) {
+  return function (opts) {
+    return function (root) {
+      root.append( { selector: opts && opts.name || name } )
+    }
+  }
+}
+
+var A = postcss.plugin('A', createCreator('a'))
+var B = postcss.plugin('B', createCreator('b'))
+var C = postcss.plugin('C', createCreator('c'))
+var D = postcss.plugin('D', createCreator('d'))
+
+var pipeline = Pipeline([
+  A, // creator
+  B(), // plugin
+  postcss([C()]), // processor
+  Pipeline([[D, { name: 'd' }]]),  // pipeline
 ])
 
-console.log(
-  pipeline.toProcessor()  // create a processor
-  .plugins.map(getName)
-)
-// [ 'A', 'B', 'C', 'A', 'B' ]
+Promise.resolve()
+  .then(function () {
+    return pipeline.build()
+      .process('x{}')
+      .then(log.bind(null, 'apply all plugins: A, B, C, D'))
+  })
+  .then(function () {
+    return pipeline.build('B', 'C')
+      .process('x{}')
+      .then(log.bind(null, 'apply plugins B, C with default options'))
+  })
+  .then(function () {
+    return pipeline.build(['A', { name: '.a' }], ['D', { name: '.d' }])
+      .process('x{}')
+      .then(log.bind(null, 'apply plugins A, D with options (only valid for creators)'))
+  })
+  .then(function () {
+    pipeline.splice('B', 2)
+    return pipeline.build()
+      .process('x{}')
+      .then(log.bind(null, 'splice, delete B, C'))
+  })
+  .then(function () {
+    pipeline.unshift(B())
+    return pipeline.build()
+      .process('x{}')
+      .then(log.bind(null, 'unshift plugin B'))
+  })
+  .then(function () {
+    pipeline.push(C)
+    return pipeline.build()
+      .process('x{}')
+      .then(log.bind(null, 'push creator C'))
+  })
+  .then(function () {
+    pipeline.get('C').push({ name: '.c' })
+    return pipeline.build()
+      .process('x{}')
+      .then(log.bind(null, 'modify default options for creator C'))
+  })
+  .then(function () {
+    pipeline.pop()
+    return pipeline.build()
+      .process('x{}')
+      .then(log.bind(null, 'pop creator C'))
+  })
+  .then(function () {
+    pipeline.shift()
+    return pipeline.build()
+      .process('x{}')
+      .then(log.bind(null, 'shift plugin B'))
+  })
+  .catch(function (err) {
+    console.log(err)
+  })
 
-pipeline.splice('c', 1) // delete C
-console.log(
-  pipeline.toProcessor().plugins.map(getName)
-)
-// [ 'A', 'B', 'A', 'B' ]
-
-pipeline.get('d').splice('a', 0, D(), E())
-console.log(
-  pipeline.toProcessor().plugins.map(getName)
-)
-// [ 'A', 'B', 'D', 'E', 'A', 'B' ]
-
-function getName(plugin) {
-  return plugin.postcssPlugin
+function log(title, result) {
+  console.log('\n')
+  console.log('x'.repeat(40))
+  console.log(title, ':')
+  console.log(result.css)
 }
+
 
 ```
 
-## pipeline = Splicer(processors)
+output:
 
-### processors
+```
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+apply all plugins: A, B, C, D :
+x{}
+a{}
+b{}
+c{}
+d{}
+
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+apply plugins B, C with default options :
+x{}
+b{}
+c{}
+
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+apply plugins A, D with options (only valid for creators) :
+x{}
+.a{}
+.d{}
+
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+splice, delete B, C :
+x{}
+a{}
+d{}
+
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+unshift plugin B :
+x{}
+b{}
+a{}
+d{}
+
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+push creator C :
+x{}
+b{}
+a{}
+d{}
+c{}
+
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+modify default options for creator C :
+x{}
+b{}
+a{}
+d{}
+.c{}
+
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+pop creator C :
+x{}
+b{}
+a{}
+d{}
+
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+shift plugin B :
+x{}
+a{}
+d{}
+
+
+```
+
+## pipeline = Pipeline(creators)
+Create a pipeline of creators.
+
+### creators
 
 Type: `Array`
 
+Elements could be postcss plugins, postcss plugin creators, instances of Pipeline.
+To set default options, just pass an array as the element.
+
+
 ### pipeline.[ArrayLikeMethods]
+Modify the builtin creators.
+
 `ArrayLikeMethods` could be one of the following:
 
 * `splice`
@@ -72,13 +199,28 @@ Type: `Array`
 * `shift`
 * `unshift`
 
-### pipeline.get(label)
-### pipeline.indexOf(label)
+### creator = pipeline.get(...postcssPlugin)
+Get the internal representation of the creators according to the given plugin names or indexes.
 
-#### label
+#### creator
+Representation of a creator.
+
+Type: `Array`
+
+The first element could be a postcss plugin function,
+or postcss creator function (created with `postcss.plugin`).
+
+Other elements are passed to the creator as options when build the plugin function.
+
+#### postcssPlugin
 
 Type: `String`, `Number`
 
-### pipeline.toProcessor()
+Plugin name, or indexes in the pipeline.
 
-Return a postcss processor.
+### pipeline.build(...creators)
+
+Create a postcss processor from given creators,
+or creators in the pipeline.
+
+You can use the plugin name or index to specify the plugin.

@@ -1,74 +1,134 @@
 var postcss = require('postcss')
 
 module.exports = Pipeline
+module.exports.build = build
 
-function Pipeline(processors) {
+function Pipeline(creators) {
   if (!(this instanceof Pipeline)) {
-    return new Pipeline(processors)
+    return new Pipeline(creators)
   }
-  this.processors = []
-
-  processors = (processors || []).map(function (processor, i) {
-    if (typeof processor === 'string') {
-      return
-    }
-    if (Array.isArray(processor)) {
-      processor = new Pipeline(processor)
-    }
-    if (typeof processors[i - 1] === 'string') {
-      processor.label = processors[i - 1]
-    }
-    return processor
-  }).filter(Boolean)
-
-  this.splice.apply(this, [0, 0].concat(processors))
+  this.creators = []
+  this.splice.apply(this, [0, 0].concat(creators || []))
 }
 
-Pipeline.prototype.indexOf = function(name) {
-  if (typeof name === 'number') {
-    return name
+Pipeline.prototype.build = function() {
+  if (arguments.length === 0) {
+    return build(this.creators)
   }
-  for (var i = 0, len = this.processors.length; i < len; ++i) {
-    if (this.processors[i] === name || this.processors[i].label === name) {
-      return i
+  var creators = []
+  ;[].forEach.call(arguments, function (creator) {
+    if (
+      typeof creator === 'string' ||
+      typeof creator === 'number'
+    ) {
+      creator = this.get(creator)
+    }
+    creators.push.apply(creators, this.normalize(creator))
+  }, this)
+
+  return build(creators)
+}
+
+Pipeline.prototype.get = function(i) {
+  if (arguments.length < 1) {
+    return null
+  }
+  if (arguments.length === 1) {
+    i = this.indexOf(i)
+    return i === -1 ? null : this.creators[i]
+  }
+  return [].map.call(arguments, function (n) {
+    return this.get(n)
+  }, this)
+}
+
+Pipeline.prototype.indexOf = function(i) {
+  if (typeof i === 'number') {
+    return i
+  }
+  for (var j = 0, len = this.creators.length; j < len; ++j) {
+    if (equal(this.creators[j][0], i)) {
+      return j
     }
   }
   return -1
 }
 
 Pipeline.prototype.splice = function() {
-  var args = [].slice.call(arguments)
-  args[0] = this.indexOf(args[0])
-  return this.processors.splice.apply(this.processors, args)
+  var args = []
+
+  ;[].forEach.call(arguments, function (creator, i) {
+    if (i === 0) {
+      return args.push(this.indexOf(creator))
+    }
+    if (i === 1) {
+      return args.push(creator)
+    }
+    args.push.apply(args, this.normalize(creator))
+  }, this)
+
+  return this.creators.splice.apply(this.creators, args)
 }
 
 Pipeline.prototype.push = function() {
-  return this.processors.push.apply(this.processors, arguments)
-}
-
-Pipeline.prototype.pop = function() {
-  return this.processors.pop()
-}
-
-Pipeline.prototype.shift = function() {
-  return this.processors.shift()
+  var args = [this.creators.length, 0]
+  args.push.apply(args, arguments)
+  this.splice.apply(this, args)
 }
 
 Pipeline.prototype.unshift = function() {
-  return this.processors.unshift.apply(this.processors, arguments)
+  var args = [0, 0]
+  args.push.apply(args, arguments)
+  this.splice.apply(this, args)
 }
 
-Pipeline.prototype.get = function(name) {
-  var i = this.indexOf(name)
-  return i === -1 ? undefined : this.processors[i]
+Pipeline.prototype.pop = function() {
+  return this.creators.pop()
 }
 
-Pipeline.prototype.toProcessor = function() {
-  return postcss(this.processors.map(function (processor) {
-    if (processor instanceof Pipeline) {
-      return processor.toProcessor()
+Pipeline.prototype.shift = function() {
+  return this.creators.shift()
+}
+
+Pipeline.prototype.normalize = function(creator) {
+  if (creator && creator.creators) {
+    // Pipeline instance
+    return creator.creators
+  }
+  if (creator && creator.plugins) {
+    // postcss Processor instance
+    return creator.plugins.map(function (plugin) {
+      return [ plugin ]
+    })
+  }
+  if (!Array.isArray(creator)) {
+    creator = [ creator ]
+  }
+  if (typeof creator[0] === 'function') {
+    return [ creator ]
+  }
+  var crt = this.get(creator[0])
+  if (!crt) {
+    return []
+  }
+  crt = crt.slice()
+  crt.splice.apply(crt, [1, 0].concat(creator.slice(1)))
+  return [ crt ]
+}
+
+function equal(creator, p) {
+  return p === creator ||
+    p === creator.postcssPlugin ||
+    creator.postcss && p === creator.postcss.postcssPlugin
+}
+
+function build(creators) {
+  return postcss(creators.map(function (creator) {
+    if (!creator[0].postcss) {
+      // already plugin function, not creator anymore
+      return creator[0]
     }
-    return processor
+    return creator[0].apply(null, creator.slice(1))
   }))
 }
 
