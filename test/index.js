@@ -1,5 +1,5 @@
 var Pipeline = require('..')
-var test = require('tape')
+var test = require('tap').test
 var postcss = require('postcss')
 
 function createCreator(name) {
