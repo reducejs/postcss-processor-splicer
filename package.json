@@ -1,6 +1,6 @@
 {
   "name": "postcss-processor-splicer",
-  "version": "2.1.0",
+  "version": "3.0.0",
   "description": "Sugar way to build a postcss processor pipeline",
   "main": "index.js",
   "scripts": {
