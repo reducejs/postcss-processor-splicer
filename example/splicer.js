@@ -14,11 +14,11 @@ var B = postcss.plugin('B', createCreator('b'))
 var C = postcss.plugin('C', createCreator('c'))
 var D = postcss.plugin('D', createCreator('d'))
 
-var pipeline = Pipeline([
+var pipeline = new Pipeline([
   A, // creator
   B(), // plugin
   postcss([C()]), // processor
-  Pipeline([[D, { name: 'd' }]]),  // pipeline
+  new Pipeline([[D, { name: 'd' }]]),  // pipeline
 ])
 
 Promise.resolve()

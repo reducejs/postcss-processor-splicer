@@ -1,9 +1,10 @@
 # postcss-processor-splicer
 [![version](https://img.shields.io/npm/v/postcss-processor-splicer.svg)](https://www.npmjs.org/package/postcss-processor-splicer)
-[![status](https://travis-ci.org/zoubin/postcss-processor-splicer.svg?branch=master)](https://travis-ci.org/zoubin/postcss-processor-splicer)
-[![coverage](https://img.shields.io/coveralls/zoubin/postcss-processor-splicer.svg)](https://coveralls.io/github/zoubin/postcss-processor-splicer)
-[![dependencies](https://david-dm.org/zoubin/postcss-processor-splicer.svg)](https://david-dm.org/zoubin/postcss-processor-splicer)
-[![devDependencies](https://david-dm.org/zoubin/postcss-processor-splicer/dev-status.svg)](https://david-dm.org/zoubin/postcss-processor-splicer#info=devDependencies)
+[![status](https://travis-ci.org/reducejs/postcss-processor-splicer.svg?branch=master)](https://travis-ci.org/reducejs/postcss-processor-splicer)
+[![coverage](https://img.shields.io/coveralls/reducejs/postcss-processor-splicer.svg)](https://coveralls.io/github/reducejs/postcss-processor-splicer)
+[![dependencies](https://david-dm.org/reducejs/postcss-processor-splicer.svg)](https://david-dm.org/reducejs/postcss-processor-splicer)
+[![devDependencies](https://david-dm.org/reducejs/postcss-processor-splicer/dev-status.svg)](https://david-dm.org/reducejs/postcss-processor-splicer#info=devDependencies)
+![node](https://img.shields.io/node/v/postcss-processor-splicer.svg)
 
 Allow your postcss plugin pipeline to be modified like an array.
 
@@ -26,11 +27,11 @@ var B = postcss.plugin('B', createCreator('b'))
 var C = postcss.plugin('C', createCreator('c'))
 var D = postcss.plugin('D', createCreator('d'))
 
-var pipeline = Pipeline([
+var pipeline = new Pipeline([
   A, // creator
   B(), // plugin
   postcss([C()]), // processor
-  Pipeline([[D, { name: 'd' }]]),  // pipeline
+  new Pipeline([[D, { name: 'd' }]]),  // pipeline
 ])
 
 Promise.resolve()
@@ -175,7 +176,7 @@ d{}
 
 ```
 
-## pipeline = Pipeline(creators)
+## pipeline = new Pipeline(creators)
 Create a pipeline of creators.
 
 ### creators

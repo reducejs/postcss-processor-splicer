@@ -4,13 +4,13 @@
   "description": "Sugar way to build a postcss processor pipeline",
   "main": "index.js",
   "scripts": {
-    "test": "npm run lint && tap --cov test/*.js",
+    "test": "npm run lint && tap test/*.js",
     "lint": "eslint *.js 'lib/**/*.js' test/*.js bin/*.js",
-    "coveralls": "COVERALLS_REPO_TOKEN=RYtcZjwjolY7R6ZsTRH3Z94Ld9Bw1pKxB npm test"
+    "coveralls": "COVERALLS_REPO_TOKEN=kNCeXyi8zTqkycIz0vWogdql5yursVWrf tap --cov test/*.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/zoubin/postcss-processor-splicer.git"
+    "url": "git+https://github.com/reducejs/postcss-processor-splicer.git"
   },
   "keywords": [
     "postcss",
@@ -20,15 +20,18 @@
   ],
   "author": "zoubin",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/zoubin/postcss-processor-splicer/issues"
+  "engines": {
+    "node": ">=4.2.1"
   },
-  "homepage": "https://github.com/zoubin/postcss-processor-splicer#readme",
+  "bugs": {
+    "url": "https://github.com/reducejs/postcss-processor-splicer/issues"
+  },
+  "homepage": "https://github.com/reducejs/postcss-processor-splicer#readme",
   "dependencies": {
     "postcss": "^5.0.10"
   },
   "devDependencies": {
-    "eslint": "^1.10.1",
-    "tap": "^2.3.1"
+    "eslint": "^2.1.0",
+    "tap": "^5.0.0"
   }
 }

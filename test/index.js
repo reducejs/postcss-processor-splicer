@@ -1,6 +1,8 @@
-var Pipeline = require('..')
-var test = require('tap').test
-var postcss = require('postcss')
+'use strict'
+
+const Pipeline = require('..')
+const test = require('tap').test
+const postcss = require('postcss')
 
 function createCreator(name) {
   return function (opts) {
@@ -22,17 +24,17 @@ test('empty', function(t) {
 })
 
 test('normalize', function(t) {
-  var pipeline = Pipeline([A, null, [B, { x: 1 }]])
+  var pipeline = new Pipeline([A, null, [B, { x: 1 }]])
   t.same(pipeline.creators, [ [A], [B, { x: 1 }] ])
   t.end()
 })
 
 test('build', function(t) {
-  var pipeline = Pipeline([
+  var pipeline = new Pipeline([
     A, // creator
     B(), // plugin
     postcss([C()]), // processor
-    Pipeline([[D, { name: 'd' }]]),  // pipeline
+    new Pipeline([[D, { name: 'd' }]]),  // pipeline
   ])
 
   return Promise.all([
@@ -56,7 +58,7 @@ test('build', function(t) {
       t.equal(result.css, 'x{}\nb{}', 'processor')
     }),
 
-    pipeline.build(Pipeline([B])).process('x{}').then(function (result) {
+    pipeline.build(new Pipeline([B])).process('x{}').then(function (result) {
       t.equal(result.css, 'x{}\nb{}', 'pipeline')
     }),
 
@@ -79,7 +81,7 @@ test('build', function(t) {
 })
 
 test('indexOf', function(t) {
-  var pipeline = Pipeline([A, B])
+  var pipeline = new Pipeline([A, B])
   t.equal(pipeline.indexOf(1), 1, 'numeric input')
   t.equal(pipeline.indexOf('B'), 1, 'string input')
   t.equal(pipeline.indexOf(B), 1, 'creator input')
@@ -89,7 +91,7 @@ test('indexOf', function(t) {
 })
 
 test('get', function(t) {
-  var pipeline = Pipeline([A, B])
+  var pipeline = new Pipeline([A, B])
   t.same(pipeline.get(), null, 'nothing')
   t.same(pipeline.get(1), [ B ], 'single')
   t.same(pipeline.get(1, 0), [ [B], [A] ], 'multiple, arguments')
@@ -104,7 +106,7 @@ test('get', function(t) {
 
 test('push', function(t) {
   t.plan(1)
-  var pipeline = Pipeline([A, B])
+  var pipeline = new Pipeline([A, B])
   pipeline.push(C)
   pipeline.build().process('x{}').then(function (result) {
     t.equal(result.css, 'x{}\na{}\nb{}\nc{}')
@@ -113,7 +115,7 @@ test('push', function(t) {
 
 test('pop', function(t) {
   t.plan(1)
-  var pipeline = Pipeline([A, B, C])
+  var pipeline = new Pipeline([A, B, C])
   pipeline.pop()
   pipeline.build().process('x{}').then(function (result) {
     t.equal(result.css, 'x{}\na{}\nb{}')
@@ -122,7 +124,7 @@ test('pop', function(t) {
 
 test('shift', function(t) {
   t.plan(1)
-  var pipeline = Pipeline([A, B, C])
+  var pipeline = new Pipeline([A, B, C])
   pipeline.shift()
   pipeline.build().process('x{}').then(function (result) {
     t.equal(result.css, 'x{}\nb{}\nc{}')
@@ -131,7 +133,7 @@ test('shift', function(t) {
 
 test('unshift', function(t) {
   t.plan(1)
-  var pipeline = Pipeline([B, C])
+  var pipeline = new Pipeline([B, C])
   pipeline.unshift(A)
   pipeline.build().process('x{}').then(function (result) {
     t.equal(result.css, 'x{}\na{}\nb{}\nc{}')
@@ -139,7 +141,7 @@ test('unshift', function(t) {
 })
 
 test('splice', function(t) {
-  var pipeline = Pipeline([A, B, C])
+  var pipeline = new Pipeline([A, B, C])
 
   return Promise.resolve()
     .then(function () {
