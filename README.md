@@ -6,7 +6,7 @@
 [![devDependencies](https://david-dm.org/reducejs/postcss-processor-splicer/dev-status.svg)](https://david-dm.org/reducejs/postcss-processor-splicer#info=devDependencies)
 ![node](https://img.shields.io/node/v/postcss-processor-splicer.svg)
 
-Allow your postcss plugin pipeline to be modified like an array.
+Allow your postcss plugin pipeline to be editable like an array.
 
 ## Example
 
